@@ -11,7 +11,7 @@ pipeline {
             steps {
                 withAWS(region: AWS_REGION, credentials: 'aws-credentials') {  // 'aws-credentials' is the Jenkins credential ID
                     echo "Listing snapshots created before today (midnight)..."
-                    aws command: '''
+                    def command: '''
                         current_date=\$(date +%Y-%m-%d)
                         midnight_date=\$(date -d "\$current_date" +%Y-%m-%dT00:00:00Z)
                         aws ec2 describe-snapshots \
@@ -27,7 +27,7 @@ pipeline {
             steps {
                 withAWS(region: AWS_REGION, credentials: 'aws-credentials') {
                     echo "Deleting old snapshots created before today (midnight)..."
-                    aws command: '''
+                    def command: '''
                         current_date=\$(date +%Y-%m-%d)
                         midnight_date=\$(date -d "\$current_date" +%Y-%m-%dT00:00:00Z)
                         for snapshot in \$(aws ec2 describe-snapshots \
