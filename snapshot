@@ -3,7 +3,7 @@ pipeline {
  
     environment {
         AWS_REGION = 'eu-north-1b'              // Replace with your AWS region
-        DAYS_OLD = 0                           // Number of days to consider a snapshot "old"
+        DAYS_OLD = 1                           // Number of days to consider a snapshot "old"
         AWS_CREDENTIALS_ID = 'aws-credentials' // Replace with the credentials ID for AWS in Jenkins
     }
  
