@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+ 
+    environment {
+        SNAPSHOT_DIR = "/path/to/snapshots" // Replace with your actual snapshots directory
+        DAYS_OLD = 1
+    }
+ 
+    stages {
+        stage('Fetch Code') {
+            steps {
+                // Pull code from GitHub repository
+                checkout scm
+            }
+        }
+ 
+        stage('List Old Snapshots') {
+            steps {
+                script {
+                    echo "Finding snapshots older than ${DAYS_OLD} days in ${SNAPSHOT_DIR}..."
+                    sh """
+                        find $SNAPSHOT_DIR -type f -mtime +$DAYS_OLD -print
+                    """
+                }
+            }
+        }
+ 
+        stage('Delete Old Snapshots') {
+            steps {
+                script {
+                    echo "Deleting snapshots older than ${DAYS_OLD} days in ${SNAPSHOT_DIR}..."
+                    sh """
+                        find $SNAPSHOT_DIR -type f -mtime +$DAYS_OLD -exec rm -f {} +
+                    """
+                }
+            }
+        }
+    }
+ 
+    post {
+        success {
+            echo "Pipeline completed successfully."
+        }
+        failure {
+            echo "Pipeline failed. Check logs for more details."
+        }
+    }
+}
