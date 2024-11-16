@@ -2,36 +2,44 @@ pipeline {
     agent any
  
     environment {
-        SNAPSHOT_DIR = "/path/to/snapshots" // Replace with your actual snapshots directory
-        DAYS_OLD = 1
+        AWS_REGION = 'eu-north-1b'              // Replace with your AWS region
+        DAYS_OLD = 1                           // Number of days to consider a snapshot "old"
+        AWS_CREDENTIALS_ID = 'aws-credentials' // Replace with the credentials ID for AWS in Jenkins
     }
  
     stages {
-        stage('Fetch Code') {
+        stage('Clone Repository') {
             steps {
-                // Pull code from GitHub repository
+                // Fetch code from GitHub
                 checkout scm
             }
         }
  
         stage('List Old Snapshots') {
             steps {
-                script {
-                    echo "Finding snapshots older than ${DAYS_OLD} days in ${SNAPSHOT_DIR}..."
-                    sh """
-                        find $SNAPSHOT_DIR -type f -mtime +$DAYS_OLD -print
-                    """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: AWS_CREDENTIALS_ID]]) {
+                    script {
+                        echo "Listing EC2 snapshots older than ${DAYS_OLD} day(s)..."
+                        sh """
+                            aws ec2 describe-snapshots --region $AWS_REGION --query 'Snapshots[?StartTime<=`date -d "$DAYS_OLD day ago" +"%Y-%m-%dT%H:%M:%SZ"`].[SnapshotId, StartTime]' --output table
+                        """
+                    }
                 }
             }
         }
  
         stage('Delete Old Snapshots') {
             steps {
-                script {
-                    echo "Deleting snapshots older than ${DAYS_OLD} days in ${SNAPSHOT_DIR}..."
-                    sh """
-                        find $SNAPSHOT_DIR -type f -mtime +$DAYS_OLD -exec rm -f {} +
-                    """
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: AWS_CREDENTIALS_ID]]) {
+                    script {
+                        echo "Deleting EC2 snapshots older than ${DAYS_OLD} day(s)..."
+                        sh """
+                            for snapshot in $(aws ec2 describe-snapshots --region $AWS_REGION --query 'Snapshots[?StartTime<=`date -d "$DAYS_OLD day ago" +"%Y-%m-%dT%H:%M:%SZ"`].SnapshotId' --output text); do
+                                echo "Deleting snapshot $snapshot"
+                                aws ec2 delete-snapshot --region $AWS_REGION --snapshot-id $snapshot
+                            done
+                        """
+                    }
                 }
             }
         }
@@ -39,10 +47,10 @@ pipeline {
  
     post {
         success {
-            echo "Pipeline completed successfully."
+            echo "Pipeline completed successfully. Old snapshots deleted."
         }
         failure {
-            echo "Pipeline failed. Check logs for more details."
+            echo "Pipeline failed. Check the logs for details."
         }
     }
 }
