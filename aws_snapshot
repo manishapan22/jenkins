@@ -1,4 +1,4 @@
--pipeline {
+pipeline {
     agent any
  
     environment {
@@ -69,4 +69,3 @@
         }
     }
 }
-has context menu
