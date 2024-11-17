@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_DEFAULT_REGION = 'your-aws-region'
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git ''
+            }
+        }
+
+        stage('List and Delete Old Snapshots') {
+            steps {
+                script {
+                    def snapshots = sh(script: 'aws ec2 describe-snapshots --owner-ids self --query "Snapshots[?StartTime<=`date -d \'-0 day\' +%Y-%m-%dT%H:%M:%S`].SnapshotId" --output text', returnStdout: true).trim()
+                    if (snapshots) {
+                        snapshots.split().each { snapshotId ->
+                            sh "aws ec2 delete-snapshot --snapshot-id ${snapshotId}"
+                            echo "Deleted snapshot: ${snapshotId}"
+                        }
+                    } else {
+                        echo "No snapshots older than 1 day found."
+                    }
+                }
+            }
+        }
+    }
+}
