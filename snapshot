@@ -17,7 +17,7 @@ pipeline {
  
         stage('List Old Snapshots') {
             steps {
-                withCredentials([[$region: 'AWS_REGION', credentialsId: AWS_CREDENTIALS_ID]]) {
+                withCredentials([[$region: AWS_REGION, credentialsId: AWS_CREDENTIALS_ID]]) {
                     script {
                         echo "Listing EC2 snapshots older than ${DAYS_OLD} day(s)..."
                         aws command: '''
@@ -30,7 +30,7 @@ pipeline {
  
         stage('Delete Old Snapshots') {
             steps {
-                withCredentials([[$region: 'AWS_REGION', credentialsId: AWS_CREDENTIALS_ID]]) {
+                withCredentials([[$region: AWS_REGION, credentialsId: AWS_CREDENTIALS_ID]]) {
                     script {
                         echo "Deleting EC2 snapshots older than ${DAYS_OLD} day(s)..."
                         aws command: '''
