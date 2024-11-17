@@ -2,7 +2,7 @@ pipeline {
     agent any
  
     environment {
-        AWS_REGION = 'eu-north-1b'  // AWS region
+        AWS_REGION = 'eu-north-1'  // AWS region
         DAYS_OLD = 0              // Snapshot age in days
     }
  
