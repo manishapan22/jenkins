@@ -4,7 +4,7 @@
 set -e
  
 
-AWS_REGION="eu-north-1"  # Change this to your AWS region
+AWS_REGION="eu-north-1"  
 DAYS_OLD=1
 TODAY=$(date -u +%s)
  
