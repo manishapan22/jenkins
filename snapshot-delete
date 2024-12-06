@@ -1,14 +1,14 @@
-#!/bin/bash
+
  
-# Fail the script on any error
+
 set -e
  
-# Variables
+
 AWS_REGION="eu-north-1"  # Change this to your AWS region
 DAYS_OLD=1
 TODAY=$(date -u +%s)
  
-# Fetch all snapshots in the specified region
+
 echo "Fetching all snapshots..."
 SNAPSHOTS=$(aws ec2 describe-snapshots --owner-ids self --region $AWS_REGION --query "Snapshots[].[SnapshotId,StartTime]" --output text)
  
@@ -17,7 +17,7 @@ if [ -z "$SNAPSHOTS" ]; then
     exit 0
 fi
  
-# Loop through snapshots and process them
+
 echo "Checking snapshots older than $DAYS_OLD days..."
 while IFS=$'\t' read -r SNAPSHOT_ID START_TIME; do
     START_TIME_EPOCH=$(date -d "$START_TIME" +%s)
